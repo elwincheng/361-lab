@@ -1,6 +1,10 @@
 #include "tools.h"
 #include "tools.c"
 
+int socketfd = -1;
+char username[20];
+char sessionID[20];
+pthread_t thread;
 int main(int argc, char *argv[]){
   
     //Create a socket
@@ -29,6 +33,34 @@ int main(int argc, char *argv[]){
             args[i] = token;
             token = strtok(NULL, " ");
             i++;
+        }
+
+        //Check the command that user entered to decide what to do next
+        char *command = args[0];
+
+        if (strcmp(command, "/login") == 0){
+            message *login_msg = malloc(sizeof(message));
+            login_msg->type = LOGIN;
+            login_msg->size = strlen(args[2]);
+            strcpy(username, login_msg->source);
+            strcpy(login_msg->source, args[1]); // username
+            strcpy(login_msg->data, args[2]);   // password
+            
+
+        }else if (strcmp(command, "/logout") == 0){
+
+        }else if (strcmp(command, "/joinsession") == 0){
+
+        }else if (strcmp(command, "/leavesession") == 0){
+
+        }else if (strcmp(command, "/createsession") == 0){
+        
+        }else if (strcmp(command, "/list") == 0){
+
+        }else if (strcmp(command, "/quit") == 0){
+
+        }else{
+            //Message for the conference
         }
 
 
