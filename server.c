@@ -1,19 +1,21 @@
 #include <sys/types.h>
 #include <sys/socket.h>
+#include "header.h"
 
 typedef struct user {
     char* id;
     char* password;
 } user;
 
-typedef struct user {
+typedef struct session {
     char* id;
     char* password;
-} user;
+} session;
 
 
-#define MAX_USERS 512;
-#define MAX_SESSIONS 64;
+#define MAX_USERS 512
+#define MAX_SESSIONS 64
+#define BACKLOG 10 // how many pending connections queue will hold
 
 int main(int argc, char *argv[]){
     int sockfd;
@@ -27,12 +29,13 @@ int main(int argc, char *argv[]){
 
     // Address info (beejs)
     struct addrinfo hints, *servinfo, *p;
-    memset(&hints, 0, sizeof(hints))
+    memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_UNSPEC;     // IPV4 or IPV6
     hints.ai_socktype = SOCK_STREAM; // TCP
     hints.ai_flags = AI_PASSIVE;
 
-    int (rv = getaddrinfo(NULL, argv[1], &hints, &servinfo) != 0) { // fill out the struct and return linked list of results to servinfo
+		int rv;
+    if (rv = getaddrinfo(NULL, argv[1], &hints, &servinfo) != 0) { // fill out the struct and return linked list of results to servinfo
         printf("Error getaddrinfo");
     }
 
@@ -51,7 +54,7 @@ int main(int argc, char *argv[]){
 
         break;
     }
-    if (p == null) {
+    if (p == NULL) {
         printf("Error looped through entire list");
         exit(2);
     }
@@ -70,8 +73,8 @@ int main(int argc, char *argv[]){
     fd_set main;
 
     while(1) {
-        client_fd = accept(sock_fd, (struct sockaddr *)&client_addr, &addr_size);
-        select // check if socket descriptor is ready to read/write
+        client_fd = accept(sockfd, (struct sockaddr *)&client_addr, &addr_size);
+        // select // check if socket descriptor is ready to read/write
         // check if multiple sockets to see if they have data to be recv'd or send data to them without blocking.
     }
 
