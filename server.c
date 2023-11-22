@@ -2,9 +2,22 @@
 #include <sys/socket.h>
 #include "header.h"
 
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+
 typedef struct user {
     char* id;
     char* password;
+		int socket;
+		char* session_id;
 } user;
 
 typedef struct session {
@@ -26,6 +39,7 @@ void *get_in_addr(struct sockaddr *sa)
 return &(((struct sockaddr_in6*)sa)->sin6_addr);
  }
 
+user client_list[100];
 
 int main(int argc, char *argv[]){
     int server_fd;
@@ -34,6 +48,15 @@ int main(int argc, char *argv[]){
         printf("Usage: ./server <TCP port number to listen on");
         return -1;
     }
+		client_list[0].id = "jill";
+		client_list[0].password = "password";
+		client_list[0].socket = -1;
+		client_list[0].session_id = NULL;
+		client_list[1].id = "bob";
+		client_list[1].password = "password";
+		client_list[1].socket = -1;
+		client_list[1].session_id = NULL;
+		int client_size = 2;
     // Store port number
     const char* port = argv[1];
 
@@ -94,6 +117,7 @@ int main(int argc, char *argv[]){
 		int fdmax = server_fd;
 		struct timeval my_timeval;
 		my_timeval.tv_sec = 1;
+		char remoteIP[INET6_ADDRSTRLEN];
     while(1) {
 			// printf("loophi\n");
 				read_fds = master;
@@ -119,11 +143,12 @@ int main(int argc, char *argv[]){
 								if (client_fd > fdmax) {
 									fdmax = client_fd;
 								}
-								printf("selectsesrver: new connection\n"
-// 							inet_ntop(remoteaddr.ss_family,
-// get_in_addr((struct sockaddr*)&client_addr),
-// remoteIP, INET6_ADDRSTRLEN),
-// client_fd
+								// printf(client_addr)
+								printf("selectsesrver: new connection: %s on socket %d\n",
+							inet_ntop(client_addr.ss_family,
+get_in_addr((struct sockaddr*)&client_addr),
+remoteIP, INET6_ADDRSTRLEN),
+client_fd
 	
 								
 								);
@@ -142,6 +167,26 @@ int main(int argc, char *argv[]){
 								close(i);
 								FD_CLR(i, &master);
 							} else { // we got some data
+									int type, size;
+									char name[512];
+									char password[512];
+									sscanf(buf, "%d:%d:%[^:]:%s", &type, &size, name, password);
+									printf("%s, %s\n", name, password);
+									int registered = 0;
+									for (int client = 0; client < client_size; client++) {
+										if (strcmp(client_list[client].id, name) == 0 && strcmp(client_list[client].password, password) == 0 && client_list[client].socket == -1) {
+											printf("MATCH");
+											registered = 1;
+											client_list[client].socket = client_fd;
+											break;
+										}
+									}
+									if (registered) {
+										printf("Match\n");
+
+									} else {
+										printf("FAILED\n");
+									}
 							printf("got data1\n");
 								printf("%s\n", buf);
 								if (send(client_fd, buf, sizeof(buf), 0) == -1) {
