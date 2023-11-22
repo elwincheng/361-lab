@@ -3,6 +3,7 @@
 #include "header.h"
 
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -118,6 +119,12 @@ int main(int argc, char *argv[]){
 		struct timeval my_timeval;
 		my_timeval.tv_sec = 1;
 		char remoteIP[INET6_ADDRSTRLEN];
+
+									int type, size;
+									char source[512];
+									char data[512];
+
+
     while(1) {
 			// printf("loophi\n");
 				read_fds = master;
@@ -167,14 +174,11 @@ client_fd
 								close(i);
 								FD_CLR(i, &master);
 							} else { // we got some data
-									int type, size;
-									char name[512];
-									char password[512];
-									sscanf(buf, "%d:%d:%[^:]:%s", &type, &size, name, password);
-									printf("%s, %s\n", name, password);
+									sscanf(buf, "%d:%d:%[^:]:%s", &type, &size, source, data);
+									printf("%s, %s\n", source, data);
 									int registered = 0;
 									for (int client = 0; client < client_size; client++) {
-										if (strcmp(client_list[client].id, name) == 0 && strcmp(client_list[client].password, password) == 0 && client_list[client].socket == -1) {
+										if (strcmp(client_list[client].id, source) == 0 && strcmp(client_list[client].password, data) == 0 && client_list[client].socket == -1) {
 											printf("MATCH");
 											registered = 1;
 											client_list[client].socket = client_fd;
@@ -182,10 +186,12 @@ client_fd
 										}
 									}
 									if (registered) {
-										printf("Match\n");
-
+										printf("Match\n"); // send login ack
+										// sprintf(buf, )
+										// if (send(client_fd, buf, sizeof(buf), 0) == -1) {
+										// }
 									} else {
-										printf("FAILED\n");
+										printf("FAILED\n"); // send failed login ack
 									}
 							printf("got data1\n");
 								printf("%s\n", buf);
@@ -213,6 +219,67 @@ client_fd
 								FD_CLR(i, &master);
 							} else { // we got some data
 							printf("got data2\n");
+									sscanf(buf, "%d:%d:%[^:]:%s", &type, &size, source, data);
+
+									if (type == EXIT) {
+											printf("EXIT\n");
+											for (int client = 0; client < client_size; client++) {
+												if (strcmp(client_list[client].id, source) == 0) {
+													assert(client_list[client].socket >= 0);
+													FD_CLR(client_list[client].socket, &master);
+													close(client_list[client].socket);
+													client_list[client].socket = -1;
+												}
+											}
+									} 
+									// else if (type == JOIN)  {
+									// }
+
+									else if (type == JOIN || type == LEAVE_SESS) {
+										for (int client = 0; client < client_size; client++) {
+											if (strcmp(client_list[client].id, source) == 0) {
+												assert(client_list[client].socket >= 0);
+												if (client_list[client].session_id != NULL) {
+													free(client_list[client].session_id);
+													client_list[client].session_id = NULL;
+												}
+											}
+										}
+									}
+									else if (type == NEW_SESS) {
+										for (int client = 0; client < client_size; client++) {
+											if (strcmp(client_list[client].id, source) == 0) {
+												assert(client_list[client].socket >= 0);
+												client_list[client].session_id = (char*) malloc(strlen(data) + 1);
+												strcpy(client_list[client].session_id, data);
+											}
+										}
+
+									} 
+									else if (type == QUERY) {
+										sprintf(buf, "User | Session");
+										for (int client = 0; client < client_size; client++) {
+											if (client_list[client].socket >= 0) {
+												sprintf(buf + strlen(buf), "%s %s", client_list[client].id, client_list[client].session_id);
+											}
+										}
+										if (send(i, buf, sizeof(buf), 0) == -1) {
+											perror("send");
+										}
+									}
+									else if (type == MESSAGE) {
+										char* currentSession;
+										for (int client = 0; client < client_size; client++) {
+											assert(client_list[i].session_id != NULL);
+											if (client_list[client].socket == i) continue;
+											if (strcmp(client_list[client].session_id, currentSession) == 0) {
+												if (send(client_list[client].socket, buf, sizeof(buf), 0) == -1) {
+													perror("send");
+												}
+											}
+
+										}
+									}
 								printf("%s\n", buf);
 							}
 
