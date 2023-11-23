@@ -42,6 +42,11 @@ return &(((struct sockaddr_in6*)sa)->sin6_addr);
 
 user client_list[100];
 
+
+// todo
+// 1. ask if registration is needed
+// 2. ackowledgements back to the client
+
 int main(int argc, char *argv[]){
     int server_fd;
     // Too many arguments
@@ -177,8 +182,14 @@ client_fd
 									sscanf(buf, "%d:%d:%[^:]:%s", &type, &size, source, data);
 									printf("%s, %s\n", source, data);
 									int registered = 0;
+									int alreadyConnected = 0;
 									for (int client = 0; client < client_size; client++) {
-										if (strcmp(client_list[client].id, source) == 0 && strcmp(client_list[client].password, data) == 0 && client_list[client].socket == -1) {
+										if (strcmp(client_list[client].id, source) == 0 && strcmp(client_list[client].password, data) == 0) {
+											if (client_list[client].socket != -1) {
+												printf("already connected\n");
+												alreadyConnected = 1;
+												break;
+											}
 											printf("MATCH");
 											registered = 1;
 											client_list[client].socket = client_fd;
@@ -187,10 +198,16 @@ client_fd
 									}
 									if (registered) {
 										printf("Match\n"); // send login ack
-										// sprintf(buf, )
+										sprintf(buf, "%d:%d:%s:%s", LO_ACK, 0, NULL, NULL);
 										// if (send(client_fd, buf, sizeof(buf), 0) == -1) {
 										// }
 									} else {
+										if (alreadyConnected) {
+											sprintf(data, "A user with that ID has already connected\n");
+										} else {
+											sprintf(data, "Invalid ID/Password\n");
+										}
+										sprintf(buf, "%d:%d:%s:%s", LO_NAK, 0, NULL, data);
 										printf("FAILED\n"); // send failed login ack
 									}
 							printf("got data1\n");
@@ -232,10 +249,29 @@ client_fd
 												}
 											}
 									} 
-									// else if (type == JOIN)  {
-									// }
+									else if (type == JOIN)  {
+										int sessionExists = 0;
+										for (int client = 0; client < client_size; client++) {
+											if (strcmp(client_list[client].session_id, data) == 0) {
+												assert(client_list[client].socket >= 0);
+												sessionExists = 1;
+												break;
+												// client_list[client].session_id = (char*) malloc(strlen(data) + 1);
+												// strcpy(client_list[client].session_id, data);
+											}
+										}
+										if (!sessionExists) {
+											sprintf(buf, "%d:%d:%s:could not join session id: %s. Does not exist", JN_NAK, 0, NULL, data);
+										} else {
+											sprintf(buf, "%d:%d:%s:%s", JN_ACK, 0, NULL, data);
 
-									else if (type == JOIN || type == LEAVE_SESS) {
+										}
+										if (send(i, buf, sizeof(buf), 0) == -1) {
+											perror("send");
+										}
+									}
+
+									else if (type == LEAVE_SESS) {
 										for (int client = 0; client < client_size; client++) {
 											if (strcmp(client_list[client].id, source) == 0) {
 												assert(client_list[client].socket >= 0);
@@ -250,23 +286,19 @@ client_fd
 										for (int client = 0; client < client_size; client++) {
 											if (strcmp(client_list[client].id, source) == 0) {
 												assert(client_list[client].socket >= 0);
+												if (client_list[client].session_id != NULL) {
+													free(client_list[client].session_id);
+												}
 												client_list[client].session_id = (char*) malloc(strlen(data) + 1);
 												strcpy(client_list[client].session_id, data);
+												break;
 											}
 										}
-
-									} 
-									else if (type == QUERY) {
-										sprintf(buf, "User | Session");
-										for (int client = 0; client < client_size; client++) {
-											if (client_list[client].socket >= 0) {
-												sprintf(buf + strlen(buf), "%s %s", client_list[client].id, client_list[client].session_id);
-											}
-										}
+										sprintf(buf, "%d:%d:%s:%s", NS_ACK, 0, NULL, data);
 										if (send(i, buf, sizeof(buf), 0) == -1) {
 											perror("send");
 										}
-									}
+									} 
 									else if (type == MESSAGE) {
 										char* currentSession;
 										for (int client = 0; client < client_size; client++) {
@@ -278,6 +310,19 @@ client_fd
 												}
 											}
 
+										}
+									}
+
+									else if (type == QUERY) {
+										sprintf(buf, "%d:%d:%s:", QU_ACK, 0, NULL);
+										sprintf(buf, "User | Session\n");
+										for (int client = 0; client < client_size; client++) {
+											if (client_list[client].socket >= 0) {
+												sprintf(buf + strlen(buf), "%s %s\n", client_list[client].id, client_list[client].session_id);
+											}
+										}
+										if (send(i, buf, sizeof(buf), 0) == -1) {
+											perror("send");
 										}
 									}
 								printf("%s\n", buf);
