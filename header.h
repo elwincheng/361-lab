@@ -34,13 +34,20 @@ enum MESSAGE_TYPE
 };
 
 
-typedef struct message message;
-struct message
+
+typedef struct message
 {
     unsigned int type;
     unsigned int size;
     unsigned char source[MAX_NAME];
     unsigned char data[MAX_DATA];
-};
+} message;
+
+typedef struct messagethread{
+    unsigned int type;
+    unsigned int size;
+    char source[USERNAME_LENGTH];
+    char data[MAX_DATA];
+} messagethread;
 
 #endif

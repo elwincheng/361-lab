@@ -5,6 +5,42 @@ int socketfd = -1;
 char username[20];
 char sessionID[20];
 pthread_t thread;
+
+void *get_message(void *arg)
+{
+    printf("get_message\n");
+    int sockfd = *(int *)arg;
+    char buffer[MAX_DATA];
+    int numbytes;
+
+    // Allocate memory for message outside the loop
+    messagethread *message = malloc(sizeof(messagethread));
+
+    while (1)
+    {
+        printf("before recv 1\n");
+        if ((numbytes = recv(sockfd, buffer, MAX_DATA - 1, 0)) == -1)
+        {
+            perror("recv");
+            exit(1);
+        }
+        buffer[numbytes] = '\0';
+        
+        // Process the incoming message directly inside get_message
+
+        // Example processing logic (replace this with your actual parsing logic)
+        sscanf(buffer, "%d:%d:%s:%s", &message->type, &message->size, message->source, message->data);
+
+        // Print the processed message
+        printf("Processed Message:\nType: %d\nSize: %d\nSource: %s\nData: %s\n", 
+               message->type, message->size, message->source, message->data);
+    }
+
+    // Free the memory outside the loop
+    free(message);
+}
+
+
 int main(int argc, char *argv[]){
   
     //Create a socket
@@ -85,7 +121,11 @@ int main(int argc, char *argv[]){
                 continue;
             }
 
-            //pthread_create(&thread, NULL, get_message, &socketfd);
+            //Start a new thread when a new user is logged in
+            pthread_create(&thread, NULL, get_message, &socketfd);
+
+            //Wait for the thread to finish
+            pthread_join(thread, NULL);
 
 
         }else if (strcmp(command, "/logout") == 0){
@@ -133,7 +173,7 @@ int main(int argc, char *argv[]){
                 continue;
             }
             strcpy(join_msg->data, args[1]); // sessionID
-            strcpy(join_msg->size, strlen(join_msg->data));
+            join_msg->size = strlen(join_msg->data);  // Corrected line
 
             //Checks
             if (socketfd == -1){
@@ -154,12 +194,6 @@ int main(int argc, char *argv[]){
 
             //Update session ID
             strcpy(sessionID, join_msg->data);
-
-            //Create the packet to send to the server
-            char packet_JOIN[MAX_DATA] = {0};
-
-            //Insert the information as a string into the packet
-            sprintf(packet_JOIN, "%d:%d:%s:%s", join_msg->type, join_msg->size, join_msg->source, join_msg->data);
 
             //send the packet
             if(send(socketfd, packet_JOIN, strlen(packet_JOIN), 0) == -1){
