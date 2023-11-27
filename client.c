@@ -316,6 +316,7 @@ int main(int argc, char *argv[]){
                 perror("recv");
                 continue;
             }
+						printf(response);
 
         }else if (strcmp(command, "/quit") == 0){
             //quit the session that the user is already in
