@@ -15,10 +15,10 @@
 #include <netdb.h>
 
 typedef struct user {
-    char* id;
-    char* password;
+    char id[512];
+    char password[512];
 		int socket;
-		char* session_id;
+		char session_id[512];
 } user;
 
 typedef struct session {
@@ -54,14 +54,18 @@ int main(int argc, char *argv[]){
         printf("Usage: ./server <TCP port number to listen on");
         return -1;
     }
-		client_list[0].id = "jill";
-		client_list[0].password = "password";
+		strcpy(client_list[0].id, "jill");
+		strcpy(client_list[0].password, "password");
 		client_list[0].socket = -1;
-		client_list[0].session_id = NULL;
-		client_list[1].id = "bob";
-		client_list[1].password = "password";
+		client_list[0].session_id[0] = '\0';
+		strcpy(client_list[1].id, "bob");
+		strcpy(client_list[1].password, "password");
 		client_list[1].socket = -1;
-		client_list[1].session_id = NULL;
+		client_list[1].session_id[0] = '\0';
+		// client_list[1].id = "bob";
+		// client_list[1].password = "password";
+		// client_list[1].socket = -1;
+		// client_list[1].session_id = NULL;
 		int client_size = 2;
     // Store port number
     const char* port = argv[1];
@@ -179,6 +183,7 @@ client_fd
 								close(i);
 								FD_CLR(i, &master);
 							} else { // we got some data
+									buf[nbytes] = '\0';
 									sscanf(buf, "%d:%d:%[^:]:%s", &type, &size, source, data);
 									printf("%s, %s\n", source, data);
 									int registered = 0;
@@ -215,6 +220,10 @@ client_fd
 								if (send(client_fd, buf, sizeof(buf), 0) == -1) {
 									perror("send");
 								}
+								if (!registered) {
+										close(client_fd); // when trying to login twice didn't work
+										FD_CLR(client_fd, &master);
+								}
 								printf("sent\n");
 							}
 								
@@ -235,8 +244,10 @@ client_fd
 								close(i);
 								FD_CLR(i, &master);
 							} else { // we got some data
-							printf("got data2\n");
+								buf[nbytes] = '\0';
 									sscanf(buf, "%d:%d:%[^:]:%s", &type, &size, source, data);
+							printf("got data2 %s\n", buf);
+							// printf("%d\n", strcmp(data, "hi"));
 
 									if (type == EXIT) {
 											printf("EXIT\n");
@@ -250,6 +261,7 @@ client_fd
 											}
 									} 
 									else if (type == JOIN)  {
+										printf("JOIN: ");
 										int sessionExists = 0;
 										for (int client = 0; client < client_size; client++) {
 											if (strcmp(client_list[client].session_id, data) == 0) {
@@ -275,21 +287,26 @@ client_fd
 										for (int client = 0; client < client_size; client++) {
 											if (strcmp(client_list[client].id, source) == 0) {
 												assert(client_list[client].socket >= 0);
-												if (client_list[client].session_id != NULL) {
-													free(client_list[client].session_id);
-													client_list[client].session_id = NULL;
+												if (client_list[client].session_id[0] != '\0') {
+													// free(client_list[client].session_id);
+													// strcpy(client_list[client].session_id, NULL);
+													client_list[client].session_id[0] = '\0';
+												} else {
+													//cannot leave a session when not in asession!!!!!!!
 												}
 											}
 										}
 									}
 									else if (type == NEW_SESS) {
+										printf("CREATE: ");
 										for (int client = 0; client < client_size; client++) {
 											if (strcmp(client_list[client].id, source) == 0) {
 												assert(client_list[client].socket >= 0);
-												if (client_list[client].session_id != NULL) {
-													free(client_list[client].session_id);
+												if (client_list[client].session_id[0] != '\0') {
+													// send error! cant cretae new session when already in one!
+													// free(client_list[client].session_id);
 												}
-												client_list[client].session_id = (char*) malloc(strlen(data) + 1);
+												// client_list[client].session_id = (char*) malloc(strlen(data) + 1);
 												strcpy(client_list[client].session_id, data);
 												break;
 											}
@@ -300,7 +317,21 @@ client_fd
 										}
 									} 
 									else if (type == MESSAGE) {
-										char* currentSession;
+										char currentSession[512];
+										for (int client = 0; client < client_size; client++) {
+											assert(client_list[i].session_id != NULL);
+											if (client_list[client].socket == i) {
+												assert(client_list[client].session_id[0] != '\0');
+												strcpy(currentSession, client_list[client].session_id);
+												break;
+											}
+											// if (strcmp(client_list[client].session_id, currentSession) == 0) {
+											// 	if (send(client_list[client].socket, buf, sizeof(buf), 0) == -1) {
+											// 		perror("send");
+											// 	}
+											// }
+
+										}
 										for (int client = 0; client < client_size; client++) {
 											assert(client_list[i].session_id != NULL);
 											if (client_list[client].socket == i) continue;

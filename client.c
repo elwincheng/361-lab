@@ -1,7 +1,7 @@
 #include "tools.h"
 #include "tools.c"
 
-int socketfd = -1;
+int socketfd = 0;
 char username[20];
 char sessionID[20];
 pthread_t thread;
@@ -75,12 +75,13 @@ int main(int argc, char *argv[]){
         char *command = args[0];
 
         if (strcmp(command, "/login") == 0){
+					printf("logined\n");
             message *login_msg = malloc(sizeof(message));
             login_msg->type = LOGIN;
             login_msg->size = strlen(args[2]);
-            strcpy(username, login_msg->source);
             strcpy(login_msg->source, args[1]); // username
             strcpy(login_msg->data, args[2]);   // password
+            strcpy(username, login_msg->source);
 
             if(getaddrinfo(args[3], args[4], &hints, &res) != 0){
                 perror("getaddrinfo");
@@ -106,6 +107,7 @@ int main(int argc, char *argv[]){
 
             //Insert the information as a string into the packet
             sprintf(packet_LOGIN, "%d:%d:%s:%s", login_msg->type, login_msg->size, login_msg->source, login_msg->data);
+						printf("sprintf\n");
 
             //If the packet is sent successfully, wait for the response from the server
             //If the packet is not sent successfully, print the error and continue
@@ -113,6 +115,7 @@ int main(int argc, char *argv[]){
                 perror("send");
                 continue;
             }
+						printf("sent\n");
 
             //Receive the response from the server
             char response[MAX_DATA] = {0};
@@ -120,6 +123,7 @@ int main(int argc, char *argv[]){
                 perror("recv");
                 continue;
             }
+						printf("recvd\n");
 
             //Start a new thread when a new user is logged in
             pthread_create(&thread, NULL, get_message, &socketfd);
@@ -162,7 +166,7 @@ int main(int argc, char *argv[]){
             strcpy(username, "");
 
         }else if (strcmp(command, "/joinsession") == 0){
-
+						printf("JOINING\n");
             message *join_msg = malloc(sizeof(message));
             join_msg->type = JOIN;
             strcpy(join_msg->source, username);
@@ -200,6 +204,7 @@ int main(int argc, char *argv[]){
                 perror("send");
                 continue;
             }
+						printf("sent %s\n", packet_JOIN);
 
             char response[MAX_DATA] = {0};
             if(recv(socketfd, response, MAX_DATA, 0) == -1)
@@ -207,6 +212,7 @@ int main(int argc, char *argv[]){
                 perror("recv");
                 continue;
             }
+						printf("recv %s\n", response);
 
 
         }else if (strcmp(command, "/leavesession") == 0){
@@ -265,6 +271,7 @@ int main(int argc, char *argv[]){
                 perror("send");
                 continue;
             }
+						printf("sent %s\n", packet_CREATE_SESSION);
 
             //Receive the response from the server
             char response[MAX_DATA] = {0};
@@ -272,6 +279,7 @@ int main(int argc, char *argv[]){
                 perror("recv");
                 continue;
             }
+						printf("recv %s\n", response);
         
         }else if (strcmp(command, "/list") == 0){
             if(socketfd == -1){
