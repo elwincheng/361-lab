@@ -13,6 +13,7 @@
 #define MAX_DATA 1000
 #define MAX_ARGS 5
 
+
 enum MESSAGE_TYPE
 {
     LOGIN = 0,    // Client login request
@@ -46,7 +47,7 @@ typedef struct message
 typedef struct messagethread{
     unsigned int type;
     unsigned int size;
-    char source[USERNAME_LENGTH];
+    char source[MAX_NAME];
     char data[MAX_DATA];
 } messagethread;
 
