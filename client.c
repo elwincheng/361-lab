@@ -125,7 +125,7 @@ int main(int argc, char *argv[]){
             pthread_create(&thread, NULL, get_message, &socketfd);
 
             //Wait for the thread to finish
-            pthread_join(thread, NULL);
+            //pthread_join(thread, NULL);
 
 
         }else if (strcmp(command, "/logout") == 0){
