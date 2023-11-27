@@ -203,13 +203,141 @@ int main(int argc, char *argv[]){
             }
 
         }else if (strcmp(command, "/createsession") == 0){
+
+            if(socketfd == -1){
+                    perror("not connected to server");
+                    continue;
+                }
+                else if(username == NULL)
+                {
+                    perror("not logged in");    
+                    continue;
+                }
+                
+            message *create_msg = malloc(sizeof(message));
+            create_msg->type = NEW_SESS;
+            strcpy(create_msg->source, username);
+            strcpy(create_msg->data, args[1]); // sessionID
+            create_msg->size = strlen(create_msg->data);
+    
+            //Create the packet to send to the server
+            char packet_CREATE_SESSION[MAX_DATA] = {0};
+    
+            //Insert the information as a string into the packet
+            sprintf(packet_CREATE_SESSION, "%d:%d:%s:%s", create_msg->type, create_msg->size, create_msg->source, create_msg->data);
+    
+            //send the packet
+            if(send(socketfd, packet_CREATE_SESSION, strlen(packet_CREATE_SESSION), 0) == -1){
+                perror("send");
+                continue;
+            }
+
+            //Receive the response from the server
+            char response[MAX_DATA] = {0};
+            if(recv(socketfd, response, MAX_DATA, 0) == -1){
+                perror("recv");
+                continue;
+            }
         
         }else if (strcmp(command, "/list") == 0){
+            if(socketfd == -1){
+                perror("not connected to server");
+                continue;
+            }
+            else if(username == NULL)
+            {
+                perror("not logged in");    
+                continue;
+            }
+
+            message *list_msg = malloc(sizeof(message));
+            list_msg->type = QUERY;
+            strcpy(list_msg->source, username);
+            strcpy(list_msg->data, "list");
+            list_msg->size = strlen(list_msg->data);
+
+            //Create the packet to send to the server
+            char packet_LIST[MAX_DATA] = {0};
+
+            //Insert the information as a string into the packet
+            sprintf(packet_LIST, "%d:%d:%s:%s", list_msg->type, list_msg->size, list_msg->source, list_msg->data);
+
+            //send the packet
+            if(send(socketfd, packet_LIST, strlen(packet_LIST), 0) == -1){
+                perror("send");
+                continue;
+            }
+
+            //Receive the response from the server
+            char response[MAX_DATA] = {0};
+            if(recv(socketfd, response, MAX_DATA, 0) == -1){
+                perror("recv");
+                continue;
+            }
 
         }else if (strcmp(command, "/quit") == 0){
+            //quit the session that the user is already in
+            if (socketfd == -1){
+                perror("not connected to server");
+                continue;
+            }
+            else if(username == NULL)
+            {
+                perror("not logged in");    
+                continue;
+            }
+
+            message *quit_msg = malloc(sizeof(message));
+            quit_msg->type = EXIT;
+            strcpy(quit_msg->source, username);
+            strcpy(quit_msg->data, "quit");
+            quit_msg->size = strlen(quit_msg->data);
+
+            //Create the packet to send to the server
+            char packet_QUIT[MAX_DATA] = {0};
+
+            //Insert the information as a string into the packet
+            sprintf(packet_QUIT, "%d:%d:%s:%s", quit_msg->type, quit_msg->size, quit_msg->source, quit_msg->data);
+
+            //send the packet
+            if(send(socketfd, packet_QUIT, strlen(packet_QUIT), 0) == -1){
+                perror("send");
+                continue;
+            }
+
+            //Receive the response from the server
+            char response[MAX_DATA] = {0};
+            if(recv(socketfd, response, MAX_DATA, 0) == -1){
+                perror("recv");
+                continue;
+            }
 
         }else{
             //Message for the conference
+            message *msg = malloc(sizeof(message));
+            msg->type = MESSAGE;
+            strcpy(msg->source, username);
+            strcpy(msg->data, commands);
+            msg->size = strlen(msg->data);
+
+            //Create the packet to send to the server
+            char packet_MESSAGE[MAX_DATA] = {0};
+
+            //Insert the information as a string into the packet
+            sprintf(packet_MESSAGE, "%d:%d:%s:%s", msg->type, msg->size, msg->source, msg->data);
+
+            //send the packet
+            if(send(socketfd, packet_MESSAGE, strlen(packet_MESSAGE), 0) == -1){
+                perror("send");
+                continue;
+            }
+
+            //Receive the response from the server
+            char response[MAX_DATA] = {0};
+            if(recv(socketfd, response, MAX_DATA, 0) == -1){
+                perror("recv");
+                continue;
+            }
         }
 
 
