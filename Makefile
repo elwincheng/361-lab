@@ -1,4 +1,4 @@
-CC=gcc -g
+CC=gcc -g -pthread
 all: clean server client
 server: server.o
 clean:
