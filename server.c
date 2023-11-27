@@ -276,7 +276,19 @@ client_fd
 											sprintf(buf, "%d:%d:%s:could not join session id: %s. Does not exist", JN_NAK, 0, NULL, data);
 										} else {
 											sprintf(buf, "%d:%d:%s:%s", JN_ACK, 0, NULL, data);
-
+											
+											for (int client = 0; client < client_size; client++) {
+												if (strcmp(client_list[client].id, source) == 0) {
+													assert(client_list[client].socket >= 0);
+													if (client_list[client].session_id[0] != '\0') {
+														// send error! cant cretae new session when already in one!
+														// free(client_list[client].session_id);
+													}
+													// client_list[client].session_id = (char*) malloc(strlen(data) + 1);
+													strcpy(client_list[client].session_id, data);
+													break;
+												}
+											}
 										}
 										if (send(i, buf, sizeof(buf), 0) == -1) {
 											perror("send");

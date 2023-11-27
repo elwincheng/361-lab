@@ -375,11 +375,11 @@ int main(int argc, char *argv[]){
             }
 
             //Receive the response from the server
-            char response[MAX_DATA] = {0};
-            if(recv(socketfd, response, MAX_DATA, 0) == -1){
-                perror("recv");
-                continue;
-            }
+            // char response[MAX_DATA] = {0};
+            // if(recv(socketfd, response, MAX_DATA, 0) == -1){
+            //     perror("recv");
+            //     continue;
+            // }
         }
 
 
