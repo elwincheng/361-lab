@@ -235,15 +235,15 @@ int main(int argc, char *argv[]){
                 perror("send");
                 continue;
             }
-						printf("sent %s\n", packet_JOIN);
+						// printf("sent %s\n", packet_JOIN);
 
-            char response[MAX_DATA] = {0};
-            if(recv(socketfd, response, MAX_DATA, 0) == -1)
-            {
-                perror("recv");
-                continue;
-            }
-						printf("recv %s\n", response);
+            // char response[MAX_DATA] = {0};
+            // if(recv(socketfd, response, MAX_DATA, 0) == -1)
+            // {
+            //     perror("recv");
+            //     continue;
+            // }
+						// printf("recv %s\n", response);
 
 
         }else if (strcmp(command, "/leavesession") == 0){
