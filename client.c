@@ -38,6 +38,8 @@ void *get_message(void *arg)
 				strcpy(message->data, buffer + bytes);
 				if (message->type == MESSAGE) {
 					printf("%s: %s\n", message->source, message->data);
+				}else if (message->type == NS_ACK) {
+					printf("New session created: %s", message->data);
 				} else {
 					printf("%s\n", message->data);
 
@@ -129,7 +131,7 @@ int main(int argc, char *argv[]){
                 perror("send");
                 continue;
             }
-						printf("sent\n");
+						// printf("sent\n");
 
             // Receive the response from the server
             char response[MAX_DATA] = {0};
@@ -305,12 +307,12 @@ int main(int argc, char *argv[]){
 						printf("sent %s\n", packet_CREATE_SESSION);
 
             //Receive the response from the server
-            char response[MAX_DATA] = {0};
-            if(recv(socketfd, response, MAX_DATA, 0) == -1){
-                perror("recv");
-                continue;
-            }
-						printf("recv %s\n", response);
+            // char response[MAX_DATA] = {0};
+            // if(recv(socketfd, response, MAX_DATA, 0) == -1){
+            //     perror("recv");
+            //     continue;
+            // }
+						// printf("recv %s\n", response);
         
         }else if (strcmp(command, "/list") == 0){
             if(socketfd == -1){
