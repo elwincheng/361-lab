@@ -100,7 +100,7 @@ int main(int argc, char *argv[]){
             strcpy(username, login_msg->source);
 
             if(getaddrinfo(args[3], args[4], &hints, &res) != 0){
-                perror("getaddrinfo");
+                perror("getaddrinfo failed");
                 continue;
             }
 
@@ -123,7 +123,7 @@ int main(int argc, char *argv[]){
 
             //Insert the information as a string into the packet
             sprintf(packet_LOGIN, "%d:%d:%s:%s", login_msg->type, login_msg->size, login_msg->source, login_msg->data);
-						printf("sprintf\n");
+						// printf("sprintf\n");
 
             //If the packet is sent successfully, wait for the response from the server
             //If the packet is not sent successfully, print the error and continue
@@ -139,7 +139,7 @@ int main(int argc, char *argv[]){
                 perror("recv");
                 continue;
             }
-						printf("recvd\n");
+						// printf("recvd\n");
 						int bytes;
             sscanf(response, "%d:%d:%[^:]: %n", &login_msg->type, &login_msg->size, login_msg->source, &bytes);
 						// printf()
@@ -304,7 +304,7 @@ int main(int argc, char *argv[]){
                 perror("send");
                 continue;
             }
-						printf("sent %s\n", packet_CREATE_SESSION);
+						// printf("sent %s\n", packet_CREATE_SESSION);
 
             //Receive the response from the server
             // char response[MAX_DATA] = {0};

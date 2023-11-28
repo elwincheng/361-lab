@@ -171,17 +171,17 @@ client_fd
 
 
 						int nbytes;
-						printf("recieving\n");
+						// printf("recieving\n");
 							if ((nbytes = recv(client_fd, buf, sizeof(buf), 0)) <= 0) {
-								printf("recieved\n");
+								// printf("recieved\n");
 								if (nbytes == 0) {
 									// connection closed
 									// FD_CLR(client)
-									printf("hung up lol\n");
+									// printf("hung up lol\n");
 								} else {
 									perror("recv");
 								}
-								printf("closing\n");
+								// printf("closing\n");
 								for (int client = 0; client < client_size; client++) {
 									if (client_list[client].socket == client_fd) {
 										printf("CLOSED: %d\n", client_fd);
@@ -195,7 +195,7 @@ client_fd
 							} else { // we got some data
 									buf[nbytes] = '\0';
 									sscanf(buf, "%d:%d:%[^:]:%s", &type, &size, source, data);
-									printf("%s, %s\n", source, data);
+									// printf("%s, %s\n", source, data);
 									int registered = 0;
 									int alreadyConnected = 0;
 									for (int client = 0; client < client_size; client++) {
@@ -384,7 +384,7 @@ client_fd
 									else if (type == QUERY) {
 										sprintf(buf, "%d:%d:%s:", QU_ACK, 0, NULL);
 										sprintf(buf + strlen(buf), "-------------\n");
-										sprintf(buf + strlen(buf), "Users-session\n");
+										sprintf(buf + strlen(buf), "%-10s %10s\n", "Users", "Session");
 										sprintf(buf + strlen(buf), "-------------\n");
 										// buf[strlen(buf)] = '\0';
 										// if (send(i, buf, sizeof(buf), 0) == -1) {
@@ -401,7 +401,7 @@ client_fd
 												// sprintf(buf, "%d:%d:%s:", QU_ACK, 0, NULL);
 												// printf("%d\n\n", strlen(buf));
 												// sprintf(buf + strlen(buf), "hihi\n");
-												sprintf(buf + strlen(buf), "%s %s\n", client_list[client].id, client_list[client].session_id);
+												sprintf(buf + strlen(buf), "%-10s %10s\n", client_list[client].id, client_list[client].session_id);
 												// sprintf(buf + strlen(buf), "%s---%s", client_list[client].id, client_list[client].session_id);
 												// if (send(i, buf, sizeof(buf), 0) == -1) {
 												// 	perror("send");
