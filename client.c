@@ -39,7 +39,7 @@ void *get_message(void *arg)
 				if (message->type == MESSAGE) {
 					printf("%s: %s\n", message->source, message->data);
 				}else if (message->type == NS_ACK) {
-					printf("New session created: %s", message->data);
+					printf("New session created: %s\n", message->data);
 				} else {
 					printf("%s\n", message->data);
 
@@ -199,7 +199,7 @@ int main(int argc, char *argv[]){
 						exit(2);
 
         }else if (strcmp(command, "/joinsession") == 0){
-						printf("JOINING\n");
+						// printf("JOINING\n");
             message *join_msg = malloc(sizeof(message));
             join_msg->type = JOIN;
             strcpy(join_msg->source, username);

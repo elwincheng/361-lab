@@ -289,9 +289,9 @@ client_fd
 												// strcpy(client_list[client].session_id, data);
 											}
 										}
-										if (!sessionExists) {
-											sprintf(buf, "%d:%d:%s:could not join session id: %s. Does not exist", JN_NAK, 0, NULL, data);
-										} else {
+										// if (!sessionExists) {
+											// sprintf(buf, "%d:%d:%s:could not join session id: %s. Does not exist", JN_NAK, 0, NULL, data);
+										// } else {
 											sprintf(buf, "%d:%d:%s:%s", JN_ACK, 0, NULL, data);
 											
 											for (int client = 0; client < client_size; client++) {
@@ -300,13 +300,21 @@ client_fd
 													if (client_list[client].session_id[0] != '\0') {
 														// send error! cant cretae new session when already in one!
 														// free(client_list[client].session_id);
+														sprintf(buf, "%d:%d:%s:Could not join session id: %s. Already in existing session", JN_NAK, 0, NULL, data);
+
+													} else {
+										if (!sessionExists) {
+											sprintf(buf, "%d:%d:%s:Could not join session id: %s. Does not exist", JN_NAK, 0, NULL, data);
+										} else {
+														// client_list[client].session_id = (char*) malloc(strlen(data) + 1);
+														strcpy(client_list[client].session_id, data);
+														break;
+										}
+
 													}
-													// client_list[client].session_id = (char*) malloc(strlen(data) + 1);
-													strcpy(client_list[client].session_id, data);
-													break;
 												}
 											}
-										}
+										// }
 										if (send(i, buf, sizeof(buf), 0) == -1) {
 											perror("send");
 										}
