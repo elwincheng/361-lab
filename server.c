@@ -176,12 +176,22 @@ client_fd
 								printf("recieved\n");
 								if (nbytes == 0) {
 									// connection closed
-									printf("hung up\n");
+									// FD_CLR(client)
+									printf("hung up lol\n");
 								} else {
 									perror("recv");
 								}
-								close(i);
-								FD_CLR(i, &master);
+								printf("closing\n");
+								for (int client = 0; client < client_size; client++) {
+									if (client_list[client].socket == client_fd) {
+										printf("CLOSED: %d\n", client_fd);
+										client_list[client].socket = -1;
+										break;
+									}
+								}
+
+								close(client_fd);
+								FD_CLR(client_fd, &master);
 							} else { // we got some data
 									buf[nbytes] = '\0';
 									sscanf(buf, "%d:%d:%[^:]:%s", &type, &size, source, data);
@@ -240,6 +250,13 @@ client_fd
 									printf("hung up\n");
 								} else {
 									perror("recv");
+								}
+								for (int client = 0; client < client_size; client++) {
+									if (client_list[client].socket == i) {
+										printf("CLOSED: %d\n", i);
+										client_list[client].socket = -1;
+										break;
+									}
 								}
 								close(i);
 								FD_CLR(i, &master);
@@ -358,10 +375,29 @@ client_fd
 
 									else if (type == QUERY) {
 										sprintf(buf, "%d:%d:%s:", QU_ACK, 0, NULL);
-										sprintf(buf, "User | Session\n");
+										sprintf(buf + strlen(buf), "-------------\n");
+										sprintf(buf + strlen(buf), "Users-session\n");
+										sprintf(buf + strlen(buf), "-------------\n");
+										// buf[strlen(buf)] = '\0';
+										// if (send(i, buf, sizeof(buf), 0) == -1) {
+										// 	perror("send");
+										// }
+										// if (send(i, buf, sizeof(buf), 0) == -1) {
+										// 	perror("send");
+										// }
+										// if (send(i, buf, sizeof(buf), 0) == -1) {
+										// 	perror("send");
+										// }
 										for (int client = 0; client < client_size; client++) {
 											if (client_list[client].socket >= 0) {
+												// sprintf(buf, "%d:%d:%s:", QU_ACK, 0, NULL);
+												// printf("%d\n\n", strlen(buf));
+												// sprintf(buf + strlen(buf), "hihi\n");
 												sprintf(buf + strlen(buf), "%s %s\n", client_list[client].id, client_list[client].session_id);
+												// sprintf(buf + strlen(buf), "%s---%s", client_list[client].id, client_list[client].session_id);
+												// if (send(i, buf, sizeof(buf), 0) == -1) {
+												// 	perror("send");
+												// }
 											}
 										}
 										if (send(i, buf, sizeof(buf), 0) == -1) {

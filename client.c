@@ -8,7 +8,7 @@ pthread_t thread;
 
 void *get_message(void *arg)
 {
-    printf("get_message\n");
+    // printf("get_message\n");
     int sockfd = *(int *)arg;
     char buffer[MAX_DATA];
     int numbytes;
@@ -18,22 +18,36 @@ void *get_message(void *arg)
 
     while (1)
     {
-        printf("before recv 1\n");
+        // printf("before recv 1\n");
         if ((numbytes = recv(sockfd, buffer, MAX_DATA - 1, 0)) == -1)
         {
             perror("recv");
             exit(1);
         }
-        buffer[numbytes] = '\0';
+				buffer[numbytes] = '\0';
+				// printf("%d\n", numbytes);
+        // buffer[numbytes] = '\0';
         
         // Process the incoming message directly inside get_message
 
         // Example processing logic (replace this with your actual parsing logic)
-        sscanf(buffer, "%d:%d:%s:%s", &message->type, &message->size, message->source, message->data);
+				// printf(buffer);
+				// printf(buffer);
+        int bytes;
+				sscanf(buffer, "%d:%d:%[^:]: %n", &message->type, &message->size, message->source, &bytes);
+				strcpy(message->data, buffer + bytes);
+				if (message->type == MESSAGE) {
+					printf("%s: %s\n", message->source, message->data);
+				} else {
+					printf("%s\n", message->data);
 
+				}
+				fflush(stdout);
+
+				// printf("%s\n", message->data);
         // Print the processed message
-        printf("Processed Message:\nType: %d\nSize: %d\nSource: %s\nData: %s\n", 
-               message->type, message->size, message->source, message->data);
+        // printf("Processed Message:\nType: %d\nSize: %d\nSource: %s\nData: %s\n", 
+        //        message->type, message->size, message->source, message->data);
     }
 
     // Free the memory outside the loop
@@ -117,16 +131,31 @@ int main(int argc, char *argv[]){
             }
 						printf("sent\n");
 
-            //Receive the response from the server
+            // Receive the response from the server
             char response[MAX_DATA] = {0};
             if(recv(socketfd, response, MAX_DATA, 0) == -1){
                 perror("recv");
                 continue;
             }
 						printf("recvd\n");
+						int bytes;
+            sscanf(response, "%d:%d:%[^:]: %n", &login_msg->type, &login_msg->size, login_msg->source, &bytes);
+						// printf()
+						if (login_msg->type == LO_ACK) {
+							pthread_create(&thread, NULL, get_message, &socketfd);
+							printf("Welcome, %s\n", username);
+
+						} else if (login_msg->type == LO_NAK) {
+							strcpy(login_msg->data, response + bytes);
+							printf(login_msg->data);
+							fflush(stdout);
+							close(socketfd);
+							socketfd = 0;
+						} else {
+							//undefined
+						}
 
             //Start a new thread when a new user is logged in
-            pthread_create(&thread, NULL, get_message, &socketfd);
 
             //Wait for the thread to finish
             //pthread_join(thread, NULL);
@@ -236,11 +265,11 @@ int main(int argc, char *argv[]){
             }
 
             //Receive the response from the server
-            char response[MAX_DATA] = {0};
-            if(recv(socketfd, response, MAX_DATA, 0) == -1){
-                perror("recv");
-                continue;
-            }
+            // char response[MAX_DATA] = {0};
+            // if(recv(socketfd, response, MAX_DATA, 0) == -1){
+            //     perror("recv");
+            //     continue;
+            // }
 
         }else if (strcmp(command, "/createsession") == 0){
 
@@ -311,12 +340,12 @@ int main(int argc, char *argv[]){
             }
 
             //Receive the response from the server
-            char response[MAX_DATA] = {0};
-            if(recv(socketfd, response, MAX_DATA, 0) == -1){
-                perror("recv");
-                continue;
-            }
-						printf(response);
+            // char response[MAX_DATA] = {0};
+            // if(recv(socketfd, response, MAX_DATA, 0) == -1){
+            //     perror("recv");
+            //     continue;
+            // }
+						// printf(response);
 
         }else if (strcmp(command, "/quit") == 0){
             //quit the session that the user is already in
@@ -356,6 +385,10 @@ int main(int argc, char *argv[]){
             }
 
         }else{
+						if (command[0] == '/') {
+							printf("Invalid command: %s\n", command);
+							continue;
+						}
             //Message for the conference
             message *msg = malloc(sizeof(message));
             msg->type = MESSAGE;
