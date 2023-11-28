@@ -193,6 +193,8 @@ int main(int argc, char *argv[]){
 
             //No user in this session now
             strcpy(username, "");
+						printf("You have been logged out.\n");
+						exit(2);
 
         }else if (strcmp(command, "/joinsession") == 0){
 						printf("JOINING\n");
