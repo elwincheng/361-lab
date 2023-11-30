@@ -81,7 +81,7 @@ int main(int argc, char *argv[]){
     if (rv = getaddrinfo(NULL, argv[1], &hints, &servinfo) != 0) { // fill out the struct and return linked list of results to servinfo
         perror("getaddrinfo");
     }
-		printf("got addr info\n");
+		// printf("got addr info\n");
 
     for (p = servinfo; p != NULL; p = p->ai_next) {
         if ((server_fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) { // get the file descriptor
@@ -99,7 +99,7 @@ int main(int argc, char *argv[]){
 
         break;
     }
-		printf("binded\n");
+		// printf("binded\n");
     if (p == NULL) {
         printf("Error looped through entire list");
         exit(2);
@@ -110,7 +110,7 @@ int main(int argc, char *argv[]){
         printf("Error, cant listen on port");
         exit(2);
     }
-		printf("listened\n");
+		// printf("listened\n");
 
     // the server is noew listening
     user users[MAX_USERS];
@@ -160,7 +160,7 @@ int main(int argc, char *argv[]){
 									fdmax = client_fd;
 								}
 								// printf(client_addr)
-								printf("selectsesrver: new connection: %s on socket %d\n",
+								printf("New connection: %s on socket %d\n",
 							inet_ntop(client_addr.ss_family,
 get_in_addr((struct sockaddr*)&client_addr),
 remoteIP, INET6_ADDRSTRLEN),
@@ -184,7 +184,7 @@ client_fd
 								// printf("closing\n");
 								for (int client = 0; client < client_size; client++) {
 									if (client_list[client].socket == client_fd) {
-										printf("CLOSED: %d\n", client_fd);
+										// printf("CLOSED: %d\n", client_fd);
 										client_list[client].socket = -1;
 										break;
 									}
@@ -205,14 +205,14 @@ client_fd
 												alreadyConnected = 1;
 												break;
 											}
-											printf("MATCH");
+											// printf("MATCH");
 											registered = 1;
 											client_list[client].socket = client_fd;
 											break;
 										}
 									}
 									if (registered) {
-										printf("Match\n"); // send login ack
+										// printf("Match\n"); // send login ack
 										sprintf(buf, "%d:%d:%s:%s", LO_ACK, 0, NULL, NULL);
 										// if (send(client_fd, buf, sizeof(buf), 0) == -1) {
 										// }
@@ -223,10 +223,10 @@ client_fd
 											sprintf(data, "Invalid ID/Password\n");
 										}
 										sprintf(buf, "%d:%d:%s:%s", LO_NAK, 0, NULL, data);
-										printf("FAILED\n"); // send failed login ack
+										// printf("FAILED\n"); // send failed login ack
 									}
-							printf("got data1\n");
-								printf("%s\n", buf);
+							// printf("got data1\n");
+								// printf("%s\n", buf);
 								if (send(client_fd, buf, sizeof(buf), 0) == -1) {
 									perror("send");
 								}
@@ -234,7 +234,7 @@ client_fd
 										close(client_fd); // when trying to login twice didn't work
 										FD_CLR(client_fd, &master);
 								}
-								printf("sent\n");
+								// printf("sent\n");
 							}
 								
 							}
@@ -244,16 +244,16 @@ client_fd
 						} else { // client connectio is ready to read
 						int nbytes;
 							if ((nbytes = recv(i, buf, sizeof(buf), 0)) <= 0) {
-								printf("read\n");
+								// printf("read\n");
 								if (nbytes == 0) {
 									// connection closed
-									printf("hung up\n");
+									// printf("hung up\n");
 								} else {
 									perror("recv");
 								}
 								for (int client = 0; client < client_size; client++) {
 									if (client_list[client].socket == i) {
-										printf("CLOSED: %d\n", i);
+										// printf("CLOSED: %d\n", i);
 										client_list[client].socket = -1;
 										break;
 									}
@@ -263,11 +263,11 @@ client_fd
 							} else { // we got some data
 								buf[nbytes] = '\0';
 									sscanf(buf, "%d:%d:%[^:]:%s", &type, &size, source, data);
-							printf("got data2 %s\n", buf);
+							// printf("got data2 %s\n", buf);
 							// printf("%d\n", strcmp(data, "hi"));
 
 									if (type == EXIT) {
-											printf("EXIT\n");
+											// printf("EXIT\n");
 											for (int client = 0; client < client_size; client++) {
 												if (strcmp(client_list[client].id, source) == 0) {
 													assert(client_list[client].socket >= 0);
@@ -278,7 +278,7 @@ client_fd
 											}
 									} 
 									else if (type == JOIN)  {
-										printf("JOIN: ");
+										// printf("JOIN: ");
 										int sessionExists = 0;
 										for (int client = 0; client < client_size; client++) {
 											if (strcmp(client_list[client].session_id, data) == 0) {
@@ -335,20 +335,23 @@ client_fd
 										}
 									}
 									else if (type == NEW_SESS) {
-										printf("CREATE: ");
+										// printf("CREATE: ");
 										for (int client = 0; client < client_size; client++) {
 											if (strcmp(client_list[client].id, source) == 0) {
 												assert(client_list[client].socket >= 0);
 												if (client_list[client].session_id[0] != '\0') {
 													// send error! cant cretae new session when already in one!
 													// free(client_list[client].session_id);
+													strcpy(data, "Can't create new session. Already in existing session.");
+													sprintf(buf, "%d:%d:%s:%s", NS_NAK, 0, NULL, data);
+												} else {
+													strcpy(client_list[client].session_id, data);
+													sprintf(buf, "%d:%d:%s:%s", NS_ACK, 0, NULL, data);
 												}
-												// client_list[client].session_id = (char*) malloc(strlen(data) + 1);
-												strcpy(client_list[client].session_id, data);
 												break;
+												// client_list[client].session_id = (char*) malloc(strlen(data) + 1);
 											}
 										}
-										sprintf(buf, "%d:%d:%s:%s", NS_ACK, 0, NULL, data);
 										if (send(i, buf, sizeof(buf), 0) == -1) {
 											perror("send");
 										}
@@ -412,7 +415,7 @@ client_fd
 											perror("send");
 										}
 									}
-								printf("%s\n", buf);
+								// printf("%s\n", buf);
 							}
 
 						}

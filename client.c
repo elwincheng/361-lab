@@ -91,7 +91,7 @@ int main(int argc, char *argv[]){
         char *command = args[0];
 
         if (strcmp(command, "/login") == 0){
-					printf("logined\n");
+					// printf("logined\n");
             message *login_msg = malloc(sizeof(message));
             login_msg->type = LOGIN;
             login_msg->size = strlen(args[2]);
