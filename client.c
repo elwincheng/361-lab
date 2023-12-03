@@ -13,7 +13,8 @@ void print_message(messagethread *message)
         printf("%s: %s\n", message->source, message->data);
         return;
     }else if(message->type == JN_ACK){
-        printf("Joined the session.\n");
+        // printf("Joined the session: %s\n", message->data);
+        printf(message->data);
         return;
     }else if(message->type == NS_ACK){
         printf("Session %s has been created.\n", message->data);
@@ -31,30 +32,30 @@ void print_message(messagethread *message)
         printf("Exited.\n");
         return;
     }else if(message->type == LO_NAK){
-        printf("Login failed.\n");
+        printf("Login failed: %s\n", message->data);
         return;
     }else if(message->type == JN_NAK){
-        printf("Join failed.\n");
+        printf("Join failed: %s\n", message->data);
         return;
     }else if(message->type == LE_NAK){
         printf("Leave failed.\n");
         return;
     }else if(message->type == NS_NAK){
-        printf("Create session failed.\n");
+        printf("Create session failed: %s\n", message->data);
         return; 
     }
 }
 
 void *get_message(void *arg)
 {
-    printf("A new thread has started for the new user.\n");
+    // printf("A new thread has started for the new user.\n");
     int sockfd = *(int *)arg;
     char buffer[MAX_DATA];
     int numbytes;
 
     while (1)
     {
-        printf("before recv 1\n");
+        // printf("before recv 1\n");
         if ((numbytes = recv(sockfd, buffer, MAX_DATA - 1, 0)) == -1)
         {
             perror("recv");
@@ -261,7 +262,7 @@ int main(int argc, char *argv[]){
             message *join_msg = malloc(sizeof(message));
             join_msg->type = JOIN;
             
-            printf("username: %s\n", username);
+            // printf("username: %s\n", username);
             strcpy(join_msg->source, username);
             strcpy(join_msg->data, args[1]); // sessionID
             join_msg->size = strlen(join_msg->data);  // Corrected line
