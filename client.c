@@ -6,55 +6,61 @@ char username[20];
 char sessionID[20];
 pthread_t thread;
 
+// print the message sent by the client
+void print_message(messagethread *message)
+{
+    printf("The message type is: %d\n", message->type);
+    printf("The message size is: %d\n", message->size);
+    printf("The message source is: %s\n", message->source);
+    printf("The message data is: %s\n", message->data);
+}
+
 void *get_message(void *arg)
 {
-    // printf("get_message\n");
+    printf("get_message\n");
     int sockfd = *(int *)arg;
     char buffer[MAX_DATA];
     int numbytes;
 
-    // Allocate memory for message outside the loop
-    messagethread *message = malloc(sizeof(messagethread));
-
     while (1)
     {
-        // printf("before recv 1\n");
+        printf("before recv 1\n");
         if ((numbytes = recv(sockfd, buffer, MAX_DATA - 1, 0)) == -1)
         {
             perror("recv");
             exit(1);
         }
-				buffer[numbytes] = '\0';
-				// printf("%d\n", numbytes);
-        // buffer[numbytes] = '\0';
-        
-        // Process the incoming message directly inside get_message
+        buffer[numbytes] = '\0';
 
-        // Example processing logic (replace this with your actual parsing logic)
-				// printf(buffer);
-				// printf(buffer);
-        int bytes;
-				sscanf(buffer, "%d:%d:%[^:]: %n", &message->type, &message->size, message->source, &bytes);
-				strcpy(message->data, buffer + bytes);
-				if (message->type == MESSAGE) {
-					printf("%s: %s\n", message->source, message->data);
-				}else if (message->type == NS_ACK) {
-					printf("New session created: %s\n", message->data);
-				} else {
-					printf("%s\n", message->data);
+        // Analysis of the incoming message
+        messagethread *message = malloc(sizeof(messagethread));
+        char *token = strtok(buffer, ":");
+        message->type = atoi(token);
 
-				}
-				fflush(stdout);
+        token = strtok(NULL, ":");
+        message->size = atoi(token);
 
-				// printf("%s\n", message->data);
-        // Print the processed message
-        // printf("Processed Message:\nType: %d\nSize: %d\nSource: %s\nData: %s\n", 
-        //        message->type, message->size, message->source, message->data);
+        token = strtok(NULL, ":");
+        strcpy(message->source, token);
+
+        token = strtok(NULL, ":");
+        if (token == NULL)
+        {
+            strcpy(message->data, "");
+        }
+        else
+        {
+            strcpy(message->data, token);
+        }
+
+        // Print the message
+        print_message(message);
+
+        // Free the memory
+        free(message);
     }
-
-    // Free the memory outside the loop
-    free(message);
 }
+
 
 
 int main(int argc, char *argv[]){
@@ -159,9 +165,6 @@ int main(int argc, char *argv[]){
 
             //Start a new thread when a new user is logged in
 
-            //Wait for the thread to finish
-            //pthread_join(thread, NULL);
-
 
         }else if (strcmp(command, "/logout") == 0){
             message *logout_msg = malloc(sizeof(message));
@@ -195,8 +198,10 @@ int main(int argc, char *argv[]){
 
             //No user in this session now
             strcpy(username, "");
-						printf("You have been logged out.\n");
-						exit(2);
+			printf("You have been logged out.\n");
+
+            //Should not terminate the program, but rather deleted the user from the session, and terminate current thread
+			//exit(2); 
 
         }else if (strcmp(command, "/joinsession") == 0){
 						// printf("JOINING\n");
@@ -382,11 +387,11 @@ int main(int argc, char *argv[]){
             }
 
             //Receive the response from the server
-            char response[MAX_DATA] = {0};
-            if(recv(socketfd, response, MAX_DATA, 0) == -1){
-                perror("recv");
-                continue;
-            }
+            //char response[MAX_DATA] = {0};
+            //if(recv(socketfd, response, MAX_DATA, 0) == -1){
+            //    perror("recv");
+            //    continue;
+            //}
 
         }else{
 						if (command[0] == '/') {
