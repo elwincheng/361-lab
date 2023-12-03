@@ -9,15 +9,45 @@ pthread_t thread;
 // print the message sent by the client
 void print_message(messagethread *message)
 {
-    printf("The message type is: %d\n", message->type);
-    printf("The message size is: %d\n", message->size);
-    printf("The message source is: %s\n", message->source);
-    printf("The message data is: %s\n", message->data);
+    if(message->type == MESSAGE){
+        printf("%s: %s\n", message->source, message->data);
+        return;
+    }else if(message->type == JN_ACK){
+        printf("Joined the session.\n");
+        return;
+    }else if(message->type == NS_ACK){
+        printf("Session %s has been created.\n", message->data);
+        return;
+    }else if(message-> type == QU_ACK){
+        printf("%s\n", message->data);
+        return;
+    }else if(message->type == LO_ACK){
+        printf("Logged out.\n");
+        return;
+    }else if(message->type == LE_ACK){
+        printf("Left the session.\n");
+        return;
+    }else if(message->type == EXIT){
+        printf("Exited.\n");
+        return;
+    }else if(message->type == LO_NAK){
+        printf("Login failed.\n");
+        return;
+    }else if(message->type == JN_NAK){
+        printf("Join failed.\n");
+        return;
+    }else if(message->type == LE_NAK){
+        printf("Leave failed.\n");
+        return;
+    }else if(message->type == NS_NAK){
+        printf("Create session failed.\n");
+        return; 
+    }
 }
 
 void *get_message(void *arg)
 {
-    printf("get_message\n");
+    printf("A new thread has started for the new user.\n");
     int sockfd = *(int *)arg;
     char buffer[MAX_DATA];
     int numbytes;
@@ -36,6 +66,11 @@ void *get_message(void *arg)
         messagethread *message = malloc(sizeof(messagethread));
         //initialize this message to be null
         memset(message, 0, sizeof(messagethread));
+        //initialize the data field to be null
+        memset(message->data, 0, MAX_DATA);
+        //initialize the source field to be null
+        memset(message->source, 0, MAX_NAME);
+ 
 
         char *token = strtok(buffer, ":");
         message->type = atoi(token);
@@ -206,22 +241,6 @@ int main(int argc, char *argv[]){
 			//exit(2); 
 
         }else if (strcmp(command, "/joinsession") == 0){
-						// printf("JOINING\n");
-            message *join_msg = malloc(sizeof(message));
-            join_msg->type = JOIN;
-            strcpy(join_msg->source, username);
-
-            //Check if the session ID is valid
-            if (args[1] == NULL)
-            {
-                printf("No session ID entered\n");
-                continue;
-            }
-            //if its not a valid session ID - todo
-
-
-            strcpy(join_msg->data, args[1]); // sessionID
-            join_msg->size = strlen(join_msg->data);  // Corrected line
 
             //Checks
             if (socketfd == -1){
@@ -232,7 +251,21 @@ int main(int argc, char *argv[]){
             {
                 perror("not logged in");    
                 continue;
+            }//Check if the session ID is valid
+            else if (args[1] == NULL)
+            {
+                printf("No session ID entered\n");
+                continue;
             }
+
+            message *join_msg = malloc(sizeof(message));
+            join_msg->type = JOIN;
+            
+            printf("username: %s\n", username);
+            strcpy(join_msg->source, username);
+            strcpy(join_msg->data, args[1]); // sessionID
+            join_msg->size = strlen(join_msg->data);  // Corrected line
+
 
              //Create the packet to send to the server
             char packet_JOIN[MAX_DATA] = {0};
@@ -241,7 +274,7 @@ int main(int argc, char *argv[]){
             sprintf(packet_JOIN, "%d:%d:%s:%s", join_msg->type, join_msg->size, join_msg->source, join_msg->data);
 
             //Update session ID
-            strcpy(sessionID, join_msg->data);
+            strcpy(sessionID, args[1]);
 
             //send the packet
             if(send(socketfd, packet_JOIN, strlen(packet_JOIN), 0) == -1){
