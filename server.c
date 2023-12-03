@@ -304,7 +304,7 @@ client_fd
 
 													} else {
 										if (!sessionExists) {
-											sprintf(buf, "%d:%d:%s:Could not join session id: %s. Does not exist", JN_NAK, 0, NULL, data);
+											sprintf(buf, "%d:%d:%s:CHECK Could not join session id: %s. Does not exist", JN_NAK, 0, NULL, data);
 										} else {
 														// client_list[client].session_id = (char*) malloc(strlen(data) + 1);
 														strcpy(client_list[client].session_id, data);
@@ -386,9 +386,9 @@ client_fd
 
 									else if (type == QUERY) {
 										sprintf(buf, "%d:%d:%s:", QU_ACK, 0, NULL);
-										sprintf(buf + strlen(buf), "-------------\n");
+										sprintf(buf + strlen(buf), "\n----------------------\n");
 										sprintf(buf + strlen(buf), "%-10s %10s\n", "Users", "Session");
-										sprintf(buf + strlen(buf), "-------------\n");
+										sprintf(buf + strlen(buf), "----------------------\n");
 										// buf[strlen(buf)] = '\0';
 										// if (send(i, buf, sizeof(buf), 0) == -1) {
 										// 	perror("send");

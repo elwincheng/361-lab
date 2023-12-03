@@ -34,6 +34,9 @@ void *get_message(void *arg)
 
         // Analysis of the incoming message
         messagethread *message = malloc(sizeof(messagethread));
+        //initialize this message to be null
+        memset(message, 0, sizeof(messagethread));
+
         char *token = strtok(buffer, ":");
         message->type = atoi(token);
 
@@ -56,7 +59,7 @@ void *get_message(void *arg)
         // Print the message
         print_message(message);
 
-        // Free the memory
+        // Free the memory by free everything in the message
         free(message);
     }
 }
@@ -170,8 +173,7 @@ int main(int argc, char *argv[]){
             message *logout_msg = malloc(sizeof(message));
             logout_msg->type = EXIT;
             strcpy(logout_msg->source, username);
-            strcpy(logout_msg->data, "logout"); //whats the data here?
-            logout_msg->size = strlen(logout_msg->data);
+            logout_msg->size = 4;
 
             if (socketfd == -1){
                 perror("not connected to server");
@@ -404,35 +406,42 @@ int main(int argc, char *argv[]){
             //}
 
         }else{
-						if (command[0] == '/') {
-							printf("Invalid command: %s\n", command);
-							continue;
-						}
-            //Message for the conference
-            message *msg = malloc(sizeof(message));
-            msg->type = MESSAGE;
-            strcpy(msg->source, username);
-            strcpy(msg->data, commands);
-            msg->size = strlen(msg->data);
+		   if (command[0] == '/') {
+        printf("Invalid command: %s\n", command);
+        continue;
+    }
+    
+    // Message for the conference
+    message *msg = malloc(sizeof(message));
+    msg->type = MESSAGE;
+    strcpy(msg->source, username);
 
-            //Create the packet to send to the server
-            char packet_MESSAGE[MAX_DATA] = {0};
+    // Combine all arguments into the data field
+    int totalLength = 0;
+    for (int j = 0; j < i; j++) {
+        strcat(msg->data, args[j]);
+        totalLength += strlen(args[j]);
+        
+        // Add a space between arguments
+        if (j < i - 1) {
+            strcat(msg->data, " ");
+            totalLength += 1; // Account for the space
+        }
+    }
 
-            //Insert the information as a string into the packet
-            sprintf(packet_MESSAGE, "%d:%d:%s:%s", msg->type, msg->size, msg->source, msg->data);
+    msg->size = totalLength;
 
-            //send the packet
-            if(send(socketfd, packet_MESSAGE, strlen(packet_MESSAGE), 0) == -1){
-                perror("send");
-                continue;
-            }
+    // Create the packet to send to the server
+    char packet_MESSAGE[MAX_DATA] = {0};
 
-            //Receive the response from the server
-            // char response[MAX_DATA] = {0};
-            // if(recv(socketfd, response, MAX_DATA, 0) == -1){
-            //     perror("recv");
-            //     continue;
-            // }
+    // Insert the information as a string into the packet
+    sprintf(packet_MESSAGE, "%d:%d:%s:%s", msg->type, msg->size, msg->source, msg->data);
+
+    // Send the packet
+    if (send(socketfd, packet_MESSAGE, strlen(packet_MESSAGE), 0) == -1) {
+        perror("send");
+        continue;
+    }
         }
 
 
