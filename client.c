@@ -210,10 +210,14 @@ int main(int argc, char *argv[]){
             strcpy(join_msg->source, username);
 
             //Check if the session ID is valid
-            if (!strlen(args[1])){
-                perror("session ID doesn't exist");
+            if (args[1] == NULL)
+            {
+                printf("No session ID entered\n");
                 continue;
             }
+            //if its not a valid session ID - todo
+
+
             strcpy(join_msg->data, args[1]); // sessionID
             join_msg->size = strlen(join_msg->data);  // Corrected line
 
@@ -291,6 +295,12 @@ int main(int argc, char *argv[]){
                     perror("not logged in");    
                     continue;
                 }
+
+            if(args[1] == NULL)
+            {
+                printf("No session ID entered\n");
+                continue;
+            }
                 
             message *create_msg = malloc(sizeof(message));
             create_msg->type = NEW_SESS;
