@@ -44,7 +44,9 @@ void print_message(messagethread *message)
     }else if(message->type == NS_NAK){
         printf("Create session failed: %s\n", message->data);
         return; 
-    }
+    } else {
+				printf(message->data);
+		}
 }
 
 void *get_message(void *arg)

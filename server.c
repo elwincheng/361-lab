@@ -413,10 +413,16 @@ client_fd
 									} 
 									else if (type == MESSAGE) {
 										char currentSession[512];
+										currentSession[0] = '\0';
 										for (int client = 0; client < client_size; client++) {
-											assert(client_list[i].session_id != NULL);
+
+											// assert(client_list[i].session_id != NULL);
 											if (client_list[client].socket == i) {
-												assert(client_list[client].session_id[0] != '\0');
+												// assert(client_list[client].session_id[0] != '\0');
+												if(client_list[client].session_id[0] == '\0') {
+													break;
+												}
+
 												strcpy(currentSession, client_list[client].session_id);
 												break;
 											}
@@ -427,6 +433,15 @@ client_fd
 											// }
 
 										}
+										if (currentSession[0] == '\0') {
+											printf("Not in session");
+											sprintf(buf, "%d:%d:%s:%s", MISC, 0, NULL, "You are not in a session\n");
+											if (send(i, buf, sizeof(buf), 0) == -1) {
+												perror("send");
+											}
+											continue;
+										}
+
 										for (int client = 0; client < client_size; client++) {
 											assert(client_list[i].session_id != NULL);
 											if (client_list[client].socket == i) continue;
