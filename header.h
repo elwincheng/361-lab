@@ -20,6 +20,7 @@ enum MESSAGE_TYPE
     LOGIN = 0,    // Client login request
     LO_ACK,       // Login acknowledgment
     LO_NAK,       // Login negative acknowledgment
+		LOGOUT, 			// logout current session
     EXIT,         // Client exit request
     JOIN,         // Join session request
     JN_ACK,       // Join session acknowledgment

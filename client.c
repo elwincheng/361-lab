@@ -6,6 +6,7 @@ char username[20];
 char sessionID[20];
 pthread_t thread;
 
+
 // print the message sent by the client
 void print_message(messagethread *message)
 {
@@ -23,7 +24,7 @@ void print_message(messagethread *message)
         printf("%s\n", message->data);
         return;
     }else if(message->type == LO_ACK){
-        printf("Logged out.\n");
+				printf("Welcome, %s\n", username);
         return;
     }else if(message->type == LE_ACK){
         printf("Left the session.\n");
@@ -104,6 +105,7 @@ void *get_message(void *arg)
 
 int main(int argc, char *argv[]){
   
+		username[0] = '\0';
     //Create a socket
     //hint: hints on the type of socket that the caller supports
     //res:  store the result of the getaddrinfo function, 
@@ -134,6 +136,11 @@ int main(int argc, char *argv[]){
 
         //Check the command that user entered to decide what to do next
         char *command = args[0];
+
+				if (strcmp(command, "/login") != 0 && username[0] == '\0') {
+					printf("Please login first\n\n");
+					continue;
+				}
 
         if (strcmp(command, "/login") == 0){
 					// printf("logined\n");
@@ -207,7 +214,7 @@ int main(int argc, char *argv[]){
 
         }else if (strcmp(command, "/logout") == 0){
             message *logout_msg = malloc(sizeof(message));
-            logout_msg->type = EXIT;
+            logout_msg->type = LOGOUT;
             strcpy(logout_msg->source, username);
             logout_msg->size = 4;
 
@@ -235,8 +242,11 @@ int main(int argc, char *argv[]){
             }
 
             //No user in this session now
-            strcpy(username, "");
+            // strcpy(username, "");
+						username[0] = '\0';
 			printf("You have been logged out.\n");
+							close(socketfd);
+							socketfd = 0;
 
             //Should not terminate the program, but rather deleted the user from the session, and terminate current thread
 			//exit(2); 
