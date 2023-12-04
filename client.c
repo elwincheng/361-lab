@@ -448,7 +448,7 @@ int main(int argc, char *argv[]){
             //    perror("recv");
             //    continue;
             //}
-
+						exit(2);
         }else{
 		   if (command[0] == '/') {
         printf("Invalid command: %s\n", command);
