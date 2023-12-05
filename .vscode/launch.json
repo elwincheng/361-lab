@@ -6,8 +6,8 @@
       "type": "lldb",
       "request": "launch",
       "args": [],
-      "cwd": "/Users/bellayang/361-lab",
-      "program": "/Users/bellayang/361-lab/build/Debug/outDebug"
+      "cwd": "/Users/bellayang/Desktop/361-lab",
+      "program": "/Users/bellayang/Desktop/361-lab/build/Debug/outDebug"
     }
   ]
 }

@@ -33,7 +33,8 @@ enum MESSAGE_TYPE
     NS_NAK,       // New session negative acknowledgment
     MESSAGE,      // Regular message
     QUERY,        // Query for a list of sessions
-    QU_ACK        // Query acknowledgment
+    QU_ACK,      // Query acknowledgment
+    MISC        //miscellaneous
 };
 
 
